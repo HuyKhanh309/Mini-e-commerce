@@ -1,0 +1,15 @@
+package com.example.base_module.exception;
+
+import org.springframework.http.HttpStatus;
+
+/** 400 – bad request (validation, invalid input). */
+public class BadRequestException extends AppException {
+
+	public BadRequestException(String message) {
+		super(HttpStatus.BAD_REQUEST, message);
+	}
+
+	public BadRequestException(String message, Throwable cause) {
+		super(HttpStatus.BAD_REQUEST, message, cause);
+	}
+}
