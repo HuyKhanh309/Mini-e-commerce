@@ -1,22 +1,30 @@
 package com.example.auth_service.config;
 
-import org.springframework.stereotype.Service;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.userdetails.UserDetails;
-
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 @Service
 public class JwtService {
 
-    private final Key key = Keys.hmacShaKeyFor(
-            "change-this-secret-key-to-a-long-random-value-256bits".getBytes());
+    private final Key key;
 
     private static final long EXP_MS = 1000 * 60 * 60; // 1h
+
+    public JwtService(@Value("${app.jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String generateToken(UserDetails user) {
         return Jwts.builder()

@@ -36,16 +36,11 @@ public class UserServiceImpl extends BaseServiceImpl<User, UUID> implements User
 	}
 
 	@Override
-	@Transactional(readOnly = true)
-	@Cacheable(
-			cacheNames = "userList",
-			key = "#type.simpleName + ':' + #page + ':' + #size + ':' + #field + ':' + #order")
 	public CachedPage<User> getList(int page, int size, String field, String order, Class<?> type) {
 		return super.getList(page, size, field, order, type);
 	}
 
 	@Override
-	@Transactional(readOnly = true)
 	@Cacheable(cacheNames = "userById", key = "#id")
 	public User getById(UUID id) {
 		return super.getById(id);
@@ -53,7 +48,6 @@ public class UserServiceImpl extends BaseServiceImpl<User, UUID> implements User
 
 	@Override
 	@Transactional
-	@CacheEvict(cacheNames = { "userList", "userById" }, allEntries = true)
 	public User create(User entity) {
 		User user = userRepository.findByUsername(entity.getUsername()).orElse(null);
 		if (user != null) {
@@ -75,7 +69,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UUID> implements User
 
 	@Override
 	@Transactional
-	@CacheEvict(cacheNames = { "userList", "userById" }, allEntries = true)
+	@CacheEvict(cacheNames = "userById", key = "#id")
 	public User update(UUID id, User entity) {
 		User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
 		if (entity.getRole().equalsIgnoreCase(Roles.UNDEFINED.getRole())) {
@@ -96,7 +90,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UUID> implements User
 	
 	@Override
 	@Transactional
-	@CacheEvict(cacheNames = { "userList", "userById" }, allEntries = true)
+	@CacheEvict(cacheNames = "userById", key = "#id")
 	public boolean delete(UUID id) {
 		User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
 		if (user.getRole().equalsIgnoreCase(Roles.SUPER_ADMIN.getRole())) {
@@ -108,10 +102,5 @@ public class UserServiceImpl extends BaseServiceImpl<User, UUID> implements User
 		} catch (Exception ex) {
 			throw new AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Error deleting user", ex);
 		}
-	}
-	
-	@Transactional(readOnly = true)
-	public boolean isUserExisted(String username) {
-		return userRepository.findByUsername(username).isPresent();
 	}
 }

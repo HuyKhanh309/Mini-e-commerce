@@ -38,7 +38,14 @@ public class User extends BaseEntity {
 	}
 	
 	public UserDTO toDTO() {
-		UserDTO dto = super.toDTO(UserDTO::new);
+		UserDTO dto = new UserDTO();
+		dto.setId(getId());
+		dto.setCreatedAt(getCreatedAt());
+		dto.setUpdatedAt(getUpdatedAt());
+		dto.setUpdateBy(getUpdateBy());
+		dto.setUsername(this.username);
+		dto.setPassword(this.password);
+		dto.setRole(this.role);
 		dto.setPassword(null);
 		return dto;
 	}

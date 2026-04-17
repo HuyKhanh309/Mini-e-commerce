@@ -2,8 +2,10 @@ package com.example.auth_service.controller.user;
 
 import java.util.UUID;
 
+import com.example.auth_service.config.Login;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,8 +44,8 @@ public class UserController {
 		ApiResponse resp = new ApiResponse(null);
 
 		PageResponse<User> userList = new PageResponse<>(userService.getList(page-1, size, sortField, sortOrder, User.class).toPage());
-		resp.setData("Users", userList.getContent().stream().map(u -> u.toDTO()).toList());
-
+		resp.setData("users", userList.getContent().stream().map(u -> u.toDTO()).toList());
+		resp.setData("size", userList.getContent().size());
 		return new ResponseEntity<>(resp, HttpStatusCode.valueOf(resp.getCode()));
 	}
 
@@ -64,6 +66,8 @@ public class UserController {
 	@PostMapping()
 	public ResponseEntity<ApiResponse> create(@Valid @RequestBody UserDTO dto) {
 		ApiResponse resp = new ApiResponse(null);
+		Login login = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		dto.setUpdateBy(login.getUsername());
 
 		User user = userService.create(dto.toEntity());
 		
@@ -75,6 +79,8 @@ public class UserController {
 	@PutMapping("/{userId}")
 	public ResponseEntity<ApiResponse> update(@PathVariable UUID userId, @Valid @RequestBody UserDTO dto) {
 		ApiResponse resp = new ApiResponse(null);
+		Login login = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		dto.setUpdateBy(login.getUsername());
 
 		User user = userService.update(userId, dto.toEntity());
 		

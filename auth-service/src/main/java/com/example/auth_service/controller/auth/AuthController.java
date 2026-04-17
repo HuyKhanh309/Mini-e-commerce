@@ -79,7 +79,8 @@ public class AuthController {
 		try {
 			// 1. Tạo tài khoản user mới
 			UserDTO userDTO = new UserDTO(dto.getUsername(), dto.getPassword(), Roles.USER.getRole());
-			
+			userDTO.setUpdateBy(dto.getUsername());
+
 			User newUser = userService.create(userDTO.toEntity());
 
             // 2. Lấy thông tin user details

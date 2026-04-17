@@ -34,7 +34,7 @@ public class SecurityConfig {
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**","/api/v1/health").permitAll()
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**","/api/v1/health","/error").permitAll()
 						.anyRequest().authenticated())
 				.exceptionHandling(ex -> ex
 		                .authenticationEntryPoint(authEntryPoint)   // <-- 401 Unauthorized 
