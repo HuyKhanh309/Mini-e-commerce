@@ -19,6 +19,9 @@ public class User extends BaseEntity {
 	
 	@Column(name="role")
 	private String role;
+
+	@Column(name="email", unique = true)
+	private String email;
 	
 	public User() {
 		super();
@@ -30,11 +33,12 @@ public class User extends BaseEntity {
 		this.password = password;
 	}
 	
-	public User (String username, String password, String role) {
+	public User (String username, String password, String role, String email) {
 		super();
 		this.username = username;
 		this.password = password;
 		this.role = role;
+		this.email = email;
 	}
 	
 	public UserDTO toDTO() {
@@ -72,5 +76,13 @@ public class User extends BaseEntity {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 }

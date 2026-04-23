@@ -11,4 +11,5 @@ import com.example.core_service.model.entity.user.User;
 @Repository
 public interface UserRepository extends BaseRepository<User, UUID> {
     Optional<User> findByUsername(String username);
+    Optional<User> findByEmail(String email);
 }

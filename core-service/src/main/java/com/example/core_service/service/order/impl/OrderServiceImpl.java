@@ -7,28 +7,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.example.base_module.entity.BaseEntity;
 import com.example.base_module.exception.BadRequestException;
 import com.example.base_module.exception.ResourceNotFoundException;
-import com.example.base_module.entity.BaseEntity;
 import com.example.core_service.config.Login;
+import com.example.core_service.messaging.MessageProducer;
 import com.example.core_service.model.dto.order.OrderItemRequestDTO;
 import com.example.core_service.model.dto.order.OrderRequestDTO;
 import com.example.core_service.model.entity.order.Order;
 import com.example.core_service.model.entity.order.OrderItem;
 import com.example.core_service.model.entity.product.Product;
+import com.example.core_service.model.entity.user.User;
 import com.example.core_service.model.enums.OrderStatus;
 import com.example.core_service.model.repository.order.OrderRepository;
 import com.example.core_service.model.repository.product.ProductRepository;
+import com.example.core_service.model.repository.user.UserRepository;
 import com.example.core_service.service.order.OrderService;
 
 import lombok.AllArgsConstructor;
@@ -41,6 +44,8 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;
 	private final TransactionTemplate transactionTemplate;
+	private final MessageProducer messageProducer;
+	private final UserRepository userRepository;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -89,7 +94,13 @@ public class OrderServiceImpl implements OrderService {
 
 		order.setStatus(targetStatus);
 		order.setUpdateBy(admin.getUsername());
-		return orderRepository.save(order);
+		Order updatedOrder = orderRepository.save(order);
+
+		User user = userRepository.findById(order.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User", order.getUserId()));
+		if(targetStatus != OrderStatus.PROCESSING){
+			messageProducer.send(buildOrderStatusChangedMessage(updatedOrder, user));
+		}
+		return updatedOrder;
 	}
 
 	@Override
@@ -139,8 +150,18 @@ public class OrderServiceImpl implements OrderService {
 		if (cache != null) {
 			productIds.forEach(cache::evict);
 		}
-
 		return order;
+	}
+
+	private Map<String, Object> buildOrderStatusChangedMessage(Order order, User user) {
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("eventType", "ORDER_STATUS_CHANGED");
+		payload.put("orderId", order.getId());
+		payload.put("username", user.getUsername());
+		payload.put("email", user.getEmail());
+		payload.put("status", order.getStatus());
+		payload.put("updatedAt", LocalDateTime.now());
+		return payload;
 	}
 
 	private Map<UUID, Integer> aggregateQuantities(List<OrderItemRequestDTO> items) {

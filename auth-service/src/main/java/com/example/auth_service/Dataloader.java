@@ -23,9 +23,9 @@ public class Dataloader{
 	public void loadAfterAppReady(){
 		if(userRepository.count() == 0) {
 			try {
-				userRepository.save(new User("Super_Admin" ,passwordEncoder.encode("khanh.lieu") ,Roles.SUPER_ADMIN.getRole()));
-				userRepository.save(new User("Admin",passwordEncoder.encode("12345678") ,Roles.ADMIN.getRole()));
-				userRepository.save(new User("User",passwordEncoder.encode("12345678") ,Roles.USER.getRole()));	
+				userRepository.save(new User("Super_Admin" ,passwordEncoder.encode("khanh.lieu") ,Roles.SUPER_ADMIN.getRole(), "lieuhuykhanh@gmail.com"));
+				userRepository.save(new User("Admin",passwordEncoder.encode("12345678") ,Roles.ADMIN.getRole(), "admin@example.com"));
+				userRepository.save(new User("User",passwordEncoder.encode("12345678") ,Roles.USER.getRole(), "user@example.com"));	
 			}
 			catch (Exception ex) {
 				System.err.println("Error loading data: " + ex.getMessage());
