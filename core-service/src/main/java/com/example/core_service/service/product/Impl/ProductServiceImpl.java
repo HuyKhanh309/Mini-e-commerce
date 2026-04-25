@@ -38,7 +38,7 @@ public class ProductServiceImpl extends BaseServiceImpl<Product, UUID> implement
 
 	@Override
 	@Transactional(readOnly = true)
-	@Cacheable(cacheNames = "productById", key = "#id")
+	@Cacheable(cacheNames = "productById", key = "#id", sync = true)
 	public Product getById(UUID id) {
 		return super.getById(id);
 	}

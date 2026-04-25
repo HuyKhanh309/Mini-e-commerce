@@ -21,21 +21,29 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 @Configuration
 public class RedisCacheConfig {
 
-	private static final Duration DEFAULT_TTL = Duration.ofMinutes(new Random().nextInt(10) + 10);
-
 	@Bean
-	public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.findAndRegisterModules();
-		objectMapper.activateDefaultTyping(
-				LaissezFaireSubTypeValidator.instance,
-				ObjectMapper.DefaultTyping.NON_FINAL,
-				JsonTypeInfo.As.PROPERTY);
+    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        objectMapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY);
 
-		GenericJackson2JsonRedisSerializer json = new GenericJackson2JsonRedisSerializer(objectMapper);
-		RedisCacheConfiguration defaults = RedisCacheConfiguration.defaultCacheConfig()
-				.entryTtl(DEFAULT_TTL)
-				.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(json));
-		return builder -> builder.cacheDefaults(defaults);
-	}
+        GenericJackson2JsonRedisSerializer json = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        // Random TTL
+        Duration ttl = Duration.ofMinutes(new Random().nextInt(10) + 10);
+
+        RedisCacheConfiguration defaults = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(ttl)
+                .serializeValuesWith(
+                    RedisSerializationContext.SerializationPair.fromSerializer(json))
+                // Use lock to avoid stampede
+                .enableTimeToIdle();
+
+        return builder -> builder
+                .cacheDefaults(defaults)
+                .enableStatistics(); // Hit/miss rate
+    }
 }
